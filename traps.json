@@ -1,0 +1,416 @@
+[
+  {
+    "slug": "fanout",
+    "comprobar": {
+      "mal": [
+        [
+          10,
+          300,
+          3
+        ]
+      ],
+      "bien": [
+        [
+          10,
+          100,
+          3
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE orders AS SELECT * FROM (VALUES (1, 10, 100.0)) AS t(id, customer_id, amount);\nCREATE TABLE lines AS SELECT * FROM (VALUES (1, 1), (2, 1), (3, 1)) AS t(id, order_id);",
+      "mal_sql": "SELECT o.customer_id,\n       sum(o.amount) AS billed,\n       count(l.id)   AS lines\nFROM orders o\nJOIN lines l ON l.order_id = o.id\nGROUP BY o.customer_id;\n-- o.amount repeats once per line of the order:\n-- an order of 100 with 3 lines adds up to 300",
+      "bien_sql": "SELECT o.customer_id,\n       sum(o.amount) AS billed,\n       sum(l.n)      AS lines\nFROM orders o\nJOIN (\n  SELECT order_id, count(*) AS n\n  FROM lines\n  GROUP BY order_id\n) l ON l.order_id = o.id\nGROUP BY o.customer_id;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE pedidos AS SELECT * FROM (VALUES (1, 10, 100.0)) AS t(id, cliente_id, importe);\nCREATE TABLE lineas AS SELECT * FROM (VALUES (1, 1), (2, 1), (3, 1)) AS t(id, pedido_id);",
+      "mal_sql": "SELECT p.cliente_id,\n       sum(p.importe) AS facturado,\n       count(l.id)    AS lineas\nFROM pedidos p\nJOIN lineas l ON l.pedido_id = p.id\nGROUP BY p.cliente_id;\n-- p.importe se repite una vez por cada línea del pedido:\n-- un pedido de 100 con 3 líneas suma 300",
+      "bien_sql": "SELECT p.cliente_id,\n       sum(p.importe) AS facturado,\n       sum(l.n)       AS lineas\nFROM pedidos p\nJOIN (\n  SELECT pedido_id, count(*) AS n\n  FROM lineas\n  GROUP BY pedido_id\n) l ON l.pedido_id = p.id\nGROUP BY p.cliente_id;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "tasa-sin-denominador",
+    "comprobar": {
+      "mal_filas": 2,
+      "bien_filas": 1,
+      "bien": [
+        [
+          "A",
+          0.1,
+          40
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE orders AS\n  SELECT i AS order_id, 'A' AS store FROM range(1, 41) t(i)\n  UNION ALL\n  SELECT i, 'B' FROM range(101, 103) t(i);\nCREATE TABLE refunds AS SELECT * FROM (VALUES\n  (1, 'A'), (2, 'A'), (3, 'A'), (4, 'A'), (101, 'B')\n) AS t(order_id, store);",
+      "mal_sql": "SELECT store, count(*) AS refunds\nFROM refunds\nGROUP BY store\nORDER BY refunds DESC;\n-- the store with the most sales looks the worst, even if it refunds less than anyone",
+      "bien_sql": "SELECT o.store,\n       count(r.order_id) * 1.0 / count(o.order_id) AS refund_rate,\n       count(o.order_id) AS orders\nFROM orders o\nLEFT JOIN refunds r ON r.order_id = o.order_id\nGROUP BY o.store\nHAVING count(o.order_id) >= 30   -- without this, a store with 2 orders and\n                                  -- 1 refund \"wins\" at 50%\nORDER BY refund_rate DESC;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE pedidos AS\n  SELECT i AS pedido_id, 'A' AS tienda FROM range(1, 41) t(i)\n  UNION ALL\n  SELECT i, 'B' FROM range(101, 103) t(i);\nCREATE TABLE reembolsos AS SELECT * FROM (VALUES\n  (1, 'A'), (2, 'A'), (3, 'A'), (4, 'A'), (101, 'B')\n) AS t(pedido_id, tienda);",
+      "mal_sql": "SELECT tienda, count(*) AS reembolsos\nFROM reembolsos\nGROUP BY tienda\nORDER BY reembolsos DESC;\n-- la tienda con más ventas parece la peor, aunque reembolse menos que nadie",
+      "bien_sql": "SELECT p.tienda,\n       count(r.pedido_id) * 1.0 / count(p.pedido_id) AS tasa_reembolso,\n       count(p.pedido_id) AS pedidos\nFROM pedidos p\nLEFT JOIN reembolsos r ON r.pedido_id = p.pedido_id\nGROUP BY p.tienda\nHAVING count(p.pedido_id) >= 30   -- sin esto, una tienda con 2 pedidos y 1\n                                   -- reembolso «gana» con 50%\nORDER BY tasa_reembolso DESC;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "left-join-where",
+    "comprobar": {
+      "mal_filas": 1,
+      "bien_filas": 3,
+      "bien_alt_filas": 2
+    },
+    "en": {
+      "datos": "CREATE TABLE orders AS SELECT * FROM (VALUES (1), (2), (3)) AS t(id);\nCREATE TABLE shipments AS SELECT * FROM (VALUES (1, 'DHL'), (2, 'FedEx')) AS t(order_id, carrier);",
+      "mal_sql": "SELECT o.id, s.carrier\nFROM orders o\nLEFT JOIN shipments s ON s.order_id = o.id\nWHERE s.carrier = 'DHL';\n-- orders with no shipment have s.carrier = NULL,\n-- and NULL = 'DHL' is NULL: the row is dropped as if this were an INNER JOIN",
+      "bien_sql": "SELECT o.id, s.carrier\nFROM orders o\nLEFT JOIN shipments s ON s.order_id = o.id\n                     AND s.carrier = 'DHL';\n-- or, if you genuinely want to exclude the rest:\nWHERE s.carrier = 'DHL' OR s.carrier IS NULL",
+      "bien_sql_alt": "SELECT o.id, s.carrier\nFROM orders o\nLEFT JOIN shipments s ON s.order_id = o.id\nWHERE s.carrier = 'DHL' OR s.carrier IS NULL;"
+    },
+    "es": {
+      "datos": "CREATE TABLE pedidos AS SELECT * FROM (VALUES (1), (2), (3)) AS t(id);\nCREATE TABLE envios AS SELECT * FROM (VALUES (1, 'DHL'), (2, 'FedEx')) AS t(pedido_id, transportista);",
+      "mal_sql": "SELECT p.id, e.transportista\nFROM pedidos p\nLEFT JOIN envios e ON e.pedido_id = p.id\nWHERE e.transportista = 'DHL';\n-- los pedidos sin envío tienen e.transportista NULL,\n-- y NULL = 'DHL' da NULL: la fila se descarta como si fuera INNER JOIN",
+      "bien_sql": "SELECT p.id, e.transportista\nFROM pedidos p\nLEFT JOIN envios e ON e.pedido_id = p.id\n                  AND e.transportista = 'DHL';\n-- o, si de verdad quieres excluir el resto:\nWHERE e.transportista = 'DHL' OR e.transportista IS NULL",
+      "bien_sql_alt": "SELECT p.id, e.transportista\nFROM pedidos p\nLEFT JOIN envios e ON e.pedido_id = p.id\nWHERE e.transportista = 'DHL' OR e.transportista IS NULL;"
+    }
+  },
+  {
+    "slug": "supervivencia",
+    "comprobar": {
+      "mal": [
+        [
+          "2020-02-01",
+          10
+        ],
+        [
+          "2020-08-01",
+          5
+        ]
+      ],
+      "bien": [
+        [
+          "2020-02-01",
+          -20
+        ],
+        [
+          "2020-08-01",
+          5
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE history AS SELECT * FROM (VALUES\n  (DATE '2020-02-01', 'AAA', 10.0),\n  (DATE '2020-02-01', 'BBB', -50.0),\n  (DATE '2020-08-01', 'AAA', 5.0)\n) AS t(date, symbol, return);\nCREATE TABLE universe AS SELECT * FROM (VALUES\n  ('AAA', true, DATE '2020-01-01', NULL),\n  ('BBB', false, DATE '2020-01-01', DATE '2020-06-01')\n) AS t(symbol, active, added, removed);",
+      "mal_sql": "SELECT h.date, avg(h.return) AS avg_return\nFROM history h\nJOIN universe u ON u.symbol = h.symbol AND u.active\nGROUP BY h.date;\n-- symbols that went bankrupt or got delisted aren't in \"universe.active\",\n-- so their bad track record never enters the average",
+      "bien_sql": "SELECT h.date, avg(h.return) AS avg_return\nFROM history h\nJOIN universe u\n  ON u.symbol = h.symbol\n AND h.date >= u.added\n AND (u.removed IS NULL OR h.date <= u.removed)\nGROUP BY h.date;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE historico AS SELECT * FROM (VALUES\n  (DATE '2020-02-01', 'AAA', 10.0),\n  (DATE '2020-02-01', 'BBB', -50.0),\n  (DATE '2020-08-01', 'AAA', 5.0)\n) AS t(fecha, simbolo, retorno);\nCREATE TABLE universo AS SELECT * FROM (VALUES\n  ('AAA', true, DATE '2020-01-01', NULL),\n  ('BBB', false, DATE '2020-01-01', DATE '2020-06-01')\n) AS t(simbolo, activo, alta, baja);",
+      "mal_sql": "SELECT h.fecha, avg(h.retorno) AS retorno_medio\nFROM historico h\nJOIN universo u ON u.simbolo = h.simbolo AND u.activo\nGROUP BY h.fecha;\n-- los símbolos que quebraron o se deslistaron no están en \"universo.activo\",\n-- así que su mal historial nunca entra al promedio",
+      "bien_sql": "SELECT h.fecha, avg(h.retorno) AS retorno_medio\nFROM historico h\nJOIN universo u\n  ON u.simbolo = h.simbolo\n AND h.fecha >= u.alta\n AND (u.baja IS NULL OR h.fecha <= u.baja)\nGROUP BY h.fecha;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "husos-horarios",
+    "comprobar": {
+      "mal": [
+        [
+          "2024-01-02 00:00:00"
+        ]
+      ],
+      "bien": [
+        [
+          "2024-01-01 00:00:00"
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE sessions AS SELECT * FROM (VALUES (TIMESTAMP '2024-01-02 03:00:00')) AS t(moment_utc);",
+      "mal_sql": "SELECT date_trunc('day', moment_utc) AS day\nFROM sessions\nGROUP BY day;\n-- moment_utc carries no zone: date_trunc cuts on the UTC day.\n-- In Mexico City (UTC−6) everything after 6 p.m.\n-- lands on the next day",
+      "bien_sql": "SELECT date_trunc(\n  'day',\n  moment_utc AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City'\n) AS local_day\nFROM sessions\nGROUP BY local_day;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE sesiones AS SELECT * FROM (VALUES (TIMESTAMP '2024-01-02 03:00:00')) AS t(momento_utc);",
+      "mal_sql": "SELECT date_trunc('day', momento_utc) AS dia\nFROM sesiones\nGROUP BY dia;\n-- momento_utc no lleva huso: date_trunc corta en el día UTC.\n-- En Ciudad de México (UTC−6) todo lo que pasa después de las\n-- 18:00 se apunta al día siguiente",
+      "bien_sql": "SELECT date_trunc(\n  'day',\n  momento_utc AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City'\n) AS dia_local\nFROM sesiones\nGROUP BY dia_local;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "not-in-nulos",
+    "comprobar": {
+      "mal_filas": 0,
+      "bien_filas": 2,
+      "bien_alt_filas": 2
+    },
+    "en": {
+      "datos": "CREATE TABLE people AS SELECT * FROM (VALUES ('Ruiz'), ('Salas'), ('Ortega'), ('Bravo'), ('Mendez')) AS t(name);\nCREATE TABLE alibis AS SELECT * FROM (VALUES ('Ruiz', 'bar camera'), ('Salas', 'her sister'), (NULL, 'unsigned receipt'), ('Bravo', 'night shift')) AS t(name, confirms);",
+      "mal_sql": "SELECT name\nFROM people\nWHERE name NOT IN (\n  SELECT name FROM alibis\n);\n-- alibis has one row with name NULL (an unsigned receipt):\n-- the whole query returns zero rows, even though suspects with no alibi exist",
+      "bien_sql": "SELECT name\nFROM people p\nWHERE NOT EXISTS (\n  SELECT 1 FROM alibis a WHERE a.name = p.name\n);\n-- or, filtering the NULL out of the list itself:\nWHERE name NOT IN (\n  SELECT name FROM alibis WHERE name IS NOT NULL\n)",
+      "bien_sql_alt": "SELECT name\nFROM people\nWHERE name NOT IN (\n  SELECT name FROM alibis WHERE name IS NOT NULL\n);"
+    },
+    "es": {
+      "datos": "CREATE TABLE personas AS SELECT * FROM (VALUES ('Ruiz'), ('Salas'), ('Ortega'), ('Bravo'), ('Mendez')) AS t(nombre);\nCREATE TABLE coartadas AS SELECT * FROM (VALUES ('Ruiz', 'camara del bar'), ('Salas', 'su hermana'), (NULL, 'recibo sin firma'), ('Bravo', 'turno de noche')) AS t(nombre, confirma);",
+      "mal_sql": "SELECT nombre\nFROM personas\nWHERE nombre NOT IN (\n  SELECT nombre FROM coartadas\n);\n-- coartadas tiene una fila con nombre NULL (un recibo sin firma):\n-- la consulta entera devuelve cero filas, aunque haya sospechosos sin coartada",
+      "bien_sql": "SELECT nombre\nFROM personas p\nWHERE NOT EXISTS (\n  SELECT 1 FROM coartadas c WHERE c.nombre = p.nombre\n);\n-- o, filtrando el NULL dentro de la propia lista:\nWHERE nombre NOT IN (\n  SELECT nombre FROM coartadas WHERE nombre IS NOT NULL\n)",
+      "bien_sql_alt": "SELECT nombre\nFROM personas\nWHERE nombre NOT IN (\n  SELECT nombre FROM coartadas WHERE nombre IS NOT NULL\n);"
+    }
+  },
+  {
+    "slug": "count-vs-asterisco",
+    "comprobar": {
+      "mal": [
+        [
+          4
+        ]
+      ],
+      "bien": [
+        [
+          7,
+          4
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE calls AS SELECT * FROM (VALUES\n  ('23:02', '555-0142'), ('23:17', NULL), ('23:31', '555-0142'),\n  ('23:48', NULL), ('00:05', '555-0199'), ('00:20', NULL), ('00:41', '555-0142')\n) AS t(hour, number);",
+      "mal_sql": "SELECT COUNT(number) AS calls\nFROM calls;\n-- the neighbor swears the phone rang 7 times; this returns 4:\n-- the 3 calls with a hidden caller ID have number = NULL",
+      "bien_sql": "SELECT COUNT(*)      AS total_calls,\n       COUNT(number) AS with_visible_number\nFROM calls;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE llamadas AS SELECT * FROM (VALUES\n  ('23:02', '555-0142'), ('23:17', NULL), ('23:31', '555-0142'),\n  ('23:48', NULL), ('00:05', '555-0199'), ('00:20', NULL), ('00:41', '555-0142')\n) AS t(hora, numero);",
+      "mal_sql": "SELECT COUNT(numero) AS llamadas\nFROM llamadas;\n-- la vecina jura que sonó 7 veces; esto devuelve 4:\n-- las 3 llamadas con número oculto tienen numero = NULL",
+      "bien_sql": "SELECT COUNT(*)      AS llamadas_totales,\n       COUNT(numero) AS con_numero_visible\nFROM llamadas;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "like-mayusculas",
+    "comprobar": {
+      "mal_filas": 1,
+      "bien_filas": 3
+    },
+    "en": {
+      "datos": "CREATE TABLE guests AS SELECT * FROM (VALUES\n  ('Ibarra Thomas', 102, DATE '2026-03-01'),\n  ('Vela Andrew', 204, DATE '2026-03-02'),\n  ('Nava Lucy', 311, DATE '2026-03-05'),\n  ('VELA, ANDREW', 311, DATE '2026-03-09'),\n  ('vela andrew', 204, DATE '2026-03-15')\n) AS t(name, room, arrival);",
+      "mal_sql": "SELECT *\nFROM guests\nWHERE name LIKE '%Vela%';\n-- the front desk says Vela stayed 3 nights; this only finds 1:\n-- 'VELA, ANDRES' and 'vela andres' don't match '%Vela%'",
+      "bien_sql": "SELECT *\nFROM guests\nWHERE name ILIKE '%vela%';",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE huespedes AS SELECT * FROM (VALUES\n  ('Ibarra Tomas', 102, DATE '2026-03-01'),\n  ('Vela Andres', 204, DATE '2026-03-02'),\n  ('Nava Lucia', 311, DATE '2026-03-05'),\n  ('VELA, ANDRES', 311, DATE '2026-03-09'),\n  ('vela andres', 204, DATE '2026-03-15')\n) AS t(nombre, habitacion, llegada);",
+      "mal_sql": "SELECT *\nFROM huespedes\nWHERE nombre LIKE '%Vela%';\n-- el recepcionista dice que Vela durmió 3 noches; esto sólo encuentra 1:\n-- 'VELA, ANDRES' y 'vela andres' no coinciden con '%Vela%'",
+      "bien_sql": "SELECT *\nFROM huespedes\nWHERE nombre ILIKE '%vela%';",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "numero-como-texto",
+    "comprobar": {
+      "mal": [
+        [
+          "MX-0928",
+          "990"
+        ],
+        [
+          "MX-2208",
+          "9500"
+        ],
+        [
+          "MX-1190",
+          "870"
+        ]
+      ],
+      "bien": [
+        [
+          "MX-0317",
+          "75000"
+        ],
+        [
+          "MX-4402",
+          "12000"
+        ],
+        [
+          "MX-2208",
+          "9500"
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE transfers AS SELECT * FROM (VALUES\n  ('MX-1041', '1500'), ('MX-2208', '9500'), ('MX-0317', '75000'),\n  ('MX-1190', '870'), ('MX-4402', '12000'), ('MX-3315', '8200'), ('MX-0928', '990')\n) AS t(account, amount);",
+      "mal_sql": "SELECT account, amount\nFROM transfers\nORDER BY amount DESC\nLIMIT 3;\n-- amount is VARCHAR: '990' > '9500' > '870' because it's compared\n-- character by character, and the $75,000 transfer never shows up",
+      "bien_sql": "SELECT account, amount\nFROM transfers\nORDER BY CAST(amount AS BIGINT) DESC\nLIMIT 3;\n-- TRY_CAST instead of CAST if any row might carry non-numeric text\n-- (a thousands comma, a blank cell): TRY_CAST gives NULL instead of blowing up the query",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE transferencias AS SELECT * FROM (VALUES\n  ('MX-1041', '1500'), ('MX-2208', '9500'), ('MX-0317', '75000'),\n  ('MX-1190', '870'), ('MX-4402', '12000'), ('MX-3315', '8200'), ('MX-0928', '990')\n) AS t(cuenta, monto);",
+      "mal_sql": "SELECT cuenta, monto\nFROM transferencias\nORDER BY monto DESC\nLIMIT 3;\n-- monto es VARCHAR: '990' > '9500' > '870' porque se compara\n-- carácter a carácter, y la de 75,000 pesos no aparece",
+      "bien_sql": "SELECT cuenta, monto\nFROM transferencias\nORDER BY CAST(monto AS BIGINT) DESC\nLIMIT 3;\n-- TRY_CAST en vez de CAST si alguna fila puede traer texto no numérico\n-- (una coma de miles, una celda vacía): TRY_CAST da NULL en vez de reventar la consulta",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "between-medianoche",
+    "comprobar": {
+      "mal_filas": 4,
+      "bien_filas": 5
+    },
+    "en": {
+      "datos": "CREATE TABLE access_log AS SELECT * FROM (VALUES\n  ('A-03', TIMESTAMP '2026-09-02 08:14'),\n  ('B-17', TIMESTAMP '2026-09-12 19:02'),\n  ('C-08', TIMESTAMP '2026-09-21 07:55'),\n  ('A-03', TIMESTAMP '2026-09-29 18:40'),\n  ('B-17', TIMESTAMP '2026-09-30 22:47'),\n  ('C-08', TIMESTAMP '2026-10-01 06:10')\n) AS t(card, entry);",
+      "mal_sql": "SELECT card, entry\nFROM access_log\nWHERE entry BETWEEN '2026-09-01' AND '2026-09-30';\n-- '2026-09-30' is read as '2026-09-30 00:00:00':\n-- the 10:47 pm entry on that same day is left out",
+      "bien_sql": "SELECT card, entry\nFROM access_log\nWHERE entry >= '2026-09-01'\n  AND entry <  '2026-10-01';",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE accesos AS SELECT * FROM (VALUES\n  ('A-03', TIMESTAMP '2026-09-02 08:14'),\n  ('B-17', TIMESTAMP '2026-09-12 19:02'),\n  ('C-08', TIMESTAMP '2026-09-21 07:55'),\n  ('A-03', TIMESTAMP '2026-09-29 18:40'),\n  ('B-17', TIMESTAMP '2026-09-30 22:47'),\n  ('C-08', TIMESTAMP '2026-10-01 06:10')\n) AS t(tarjeta, entrada);",
+      "mal_sql": "SELECT tarjeta, entrada\nFROM accesos\nWHERE entrada BETWEEN '2026-09-01' AND '2026-09-30';\n-- '2026-09-30' se interpreta como '2026-09-30 00:00:00':\n-- la entrada de las 22:47 de ese mismo día queda fuera",
+      "bien_sql": "SELECT tarjeta, entrada\nFROM accesos\nWHERE entrada >= '2026-09-01'\n  AND entrada <  '2026-10-01';",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "self-join-trivial",
+    "comprobar": {
+      "mal_filas": 4,
+      "bien_filas": 2
+    },
+    "en": {
+      "datos": "CREATE TABLE stays AS SELECT * FROM (VALUES\n  (1, 'A', 'Reservado 3', TIMESTAMP '2026-06-02 23:10', TIMESTAMP '2026-06-02 23:55'),\n  (2, 'B', 'Reservado 3', TIMESTAMP '2026-06-02 23:25', TIMESTAMP '2026-06-02 23:50')\n) AS t(id, member, room, checkin, checkout);",
+      "mal_sql": "SELECT o.member, o.checkin, v.member AS matched_with\nFROM stays o\nJOIN stays v\n  ON o.room = v.room\n AND o.checkin < v.checkout\n AND v.checkin < o.checkout;\n-- every stay overlaps with itself (o.member = v.member on two rows):\n-- those rows say nothing, and they inflate any count computed afterward",
+      "bien_sql": "SELECT o.member, o.checkin, v.member AS matched_with\nFROM stays o\nJOIN stays v\n  ON o.room = v.room\n AND o.id <> v.id\n AND o.checkin < v.checkout\n AND v.checkin < o.checkout;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE estancias AS SELECT * FROM (VALUES\n  (1, 'A', 'Reservado 3', TIMESTAMP '2026-06-02 23:10', TIMESTAMP '2026-06-02 23:55'),\n  (2, 'B', 'Reservado 3', TIMESTAMP '2026-06-02 23:25', TIMESTAMP '2026-06-02 23:50')\n) AS t(id, socio, sala, desde, hasta);",
+      "mal_sql": "SELECT o.socio, o.desde, v.socio AS con_quien\nFROM estancias o\nJOIN estancias v\n  ON o.sala = v.sala\n AND o.desde < v.hasta\n AND v.desde < o.hasta;\n-- cada estancia solapa consigo misma (o.socio = v.socio en dos filas):\n-- esas filas no aportan nada y encima inflan cualquier conteo posterior",
+      "bien_sql": "SELECT o.socio, o.desde, v.socio AS con_quien\nFROM estancias o\nJOIN estancias v\n  ON o.sala = v.sala\n AND o.id <> v.id\n AND o.desde < v.hasta\n AND v.desde < o.hasta;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "solape-de-intervalos",
+    "comprobar": {
+      "mal_filas": 6,
+      "bien_filas": 4
+    },
+    "en": {
+      "datos": "CREATE TABLE shifts AS SELECT * FROM (VALUES\n  ('Ana',  TIMESTAMP '2026-05-19 20:00', TIMESTAMP '2026-05-19 22:00'),\n  ('Beto', TIMESTAMP '2026-05-19 22:00', TIMESTAMP '2026-05-20 00:00'),\n  ('Caro', TIMESTAMP '2026-05-19 21:30', TIMESTAMP '2026-05-19 23:30')\n) AS t(person, starts, ends);",
+      "mal_sql": "SELECT a.person, b.person\nFROM shifts a\nJOIN shifts b\n  ON a.person <> b.person\n AND a.starts <= b.ends\n AND b.starts <= a.ends;\n-- with <=, two shifts that merely touch at the same instant\n-- (one ends exactly when the other begins) count as overlapping",
+      "bien_sql": "SELECT a.person, b.person\nFROM shifts a\nJOIN shifts b\n  ON a.person <> b.person\n AND a.starts < b.ends\n AND b.starts < a.ends;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE turnos AS SELECT * FROM (VALUES\n  ('Ana',  TIMESTAMP '2026-05-19 20:00', TIMESTAMP '2026-05-19 22:00'),\n  ('Beto', TIMESTAMP '2026-05-19 22:00', TIMESTAMP '2026-05-20 00:00'),\n  ('Caro', TIMESTAMP '2026-05-19 21:30', TIMESTAMP '2026-05-19 23:30')\n) AS t(persona, desde, hasta);",
+      "mal_sql": "SELECT a.persona, b.persona\nFROM turnos a\nJOIN turnos b\n  ON a.persona <> b.persona\n AND a.desde <= b.hasta\n AND b.desde <= a.hasta;\n-- con <=, dos turnos que se tocan en el mismo instante\n-- (uno termina justo cuando el otro empieza) cuentan como solape",
+      "bien_sql": "SELECT a.persona, b.persona\nFROM turnos a\nJOIN turnos b\n  ON a.persona <> b.persona\n AND a.desde < b.hasta\n AND b.desde < a.hasta;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "rango-vs-filas",
+    "comprobar": {
+      "mal": [
+        [
+          "2026-04-01",
+          100,
+          100
+        ],
+        [
+          "2026-04-02",
+          50,
+          180
+        ],
+        [
+          "2026-04-02",
+          30,
+          180
+        ],
+        [
+          "2026-04-03",
+          20,
+          200
+        ]
+      ],
+      "bien": [
+        [
+          "2026-04-01",
+          100,
+          100
+        ],
+        [
+          "2026-04-02",
+          50,
+          150
+        ],
+        [
+          "2026-04-02",
+          30,
+          180
+        ],
+        [
+          "2026-04-03",
+          20,
+          200
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE transactions AS SELECT * FROM (VALUES\n  (DATE '2026-04-01', 100.0),\n  (DATE '2026-04-02', 50.0),\n  (DATE '2026-04-02', 30.0),\n  (DATE '2026-04-03', 20.0)\n) AS t(date, amount);",
+      "mal_sql": "SELECT date, amount,\n       sum(amount) OVER (ORDER BY date) AS balance\nFROM transactions;\n-- two entries on the same day fall into the same RANGE:\n-- both show the balance after adding both of them, neither shows the balance in between",
+      "bien_sql": "SELECT date, amount,\n       sum(amount) OVER (\n         ORDER BY date\n         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n       ) AS balance\nFROM transactions;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE movimientos AS SELECT * FROM (VALUES\n  (DATE '2026-04-01', 100.0),\n  (DATE '2026-04-02', 50.0),\n  (DATE '2026-04-02', 30.0),\n  (DATE '2026-04-03', 20.0)\n) AS t(fecha, importe);",
+      "mal_sql": "SELECT fecha, importe,\n       sum(importe) OVER (ORDER BY fecha) AS saldo\nFROM movimientos;\n-- dos apuntes del mismo día caen en el mismo RANGE:\n-- ambos enseñan el saldo ya sumando los dos, ninguno el saldo intermedio",
+      "bien_sql": "SELECT fecha, importe,\n       sum(importe) OVER (\n         ORDER BY fecha\n         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n       ) AS saldo\nFROM movimientos;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "qualify-vs-where",
+    "comprobar": {
+      "mal_error": true,
+      "bien_filas": 1
+    },
+    "en": {
+      "datos": "CREATE TABLE validations AS SELECT * FROM (VALUES\n  ('T1', TIMESTAMP '2026-01-01 10:00:00'),\n  ('T1', TIMESTAMP '2026-01-01 10:05:00'),\n  ('T1', TIMESTAMP '2026-01-01 10:40:00'),\n  ('T2', TIMESTAMP '2026-01-01 11:00:00')\n) AS t(card, moment);",
+      "mal_sql": "SELECT card, moment,\n       lag(moment) OVER (PARTITION BY card ORDER BY moment) AS previous\nFROM validations\nWHERE date_diff('minute', lag(moment) OVER (PARTITION BY card ORDER BY moment), moment) < 10;\n-- error: a window function can't be called inside WHERE",
+      "bien_sql": "SELECT card, moment,\n       lag(moment) OVER (PARTITION BY card ORDER BY moment) AS previous\nFROM validations\nQUALIFY date_diff('minute', previous, moment) < 10;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE validaciones AS SELECT * FROM (VALUES\n  ('T1', TIMESTAMP '2026-01-01 10:00:00'),\n  ('T1', TIMESTAMP '2026-01-01 10:05:00'),\n  ('T1', TIMESTAMP '2026-01-01 10:40:00'),\n  ('T2', TIMESTAMP '2026-01-01 11:00:00')\n) AS t(tarjeta, momento);",
+      "mal_sql": "SELECT tarjeta, momento,\n       lag(momento) OVER (PARTITION BY tarjeta ORDER BY momento) AS previo\nFROM validaciones\nWHERE date_diff('minute', lag(momento) OVER (PARTITION BY tarjeta ORDER BY momento), momento) < 10;\n-- error: no se puede llamar a una window function dentro del WHERE",
+      "bien_sql": "SELECT tarjeta, momento,\n       lag(momento) OVER (PARTITION BY tarjeta ORDER BY momento) AS previo\nFROM validaciones\nQUALIFY date_diff('minute', previo, momento) < 10;",
+      "bien_sql_alt": null
+    }
+  },
+  {
+    "slug": "where-vs-having",
+    "comprobar": {
+      "mal_filas": 2,
+      "bien_filas": 1,
+      "bien": [
+        [
+          "X"
+        ]
+      ]
+    },
+    "en": {
+      "datos": "CREATE TABLE payments AS SELECT * FROM (VALUES\n  ('X', 'cash'), ('X', 'cash'), ('X', 'cash'),\n  ('Y', 'cash'), ('Y', 'cash'), ('Y', 'cash'), ('Y', 'card'),\n  ('Z', 'cash'), ('Z', 'cash')\n) AS t(customer, method);",
+      "mal_sql": "SELECT customer\nFROM payments\nWHERE method = 'cash'\nGROUP BY customer\nHAVING count(*) >= 3;\n-- this finds anyone who paid cash 3 times or more,\n-- even if they also paid by card: the WHERE already dropped that row",
+      "bien_sql": "SELECT customer\nFROM payments\nGROUP BY customer\nHAVING count(*) >= 3\n   AND count(*) FILTER (WHERE method <> 'cash') = 0;",
+      "bien_sql_alt": null
+    },
+    "es": {
+      "datos": "CREATE TABLE pagos AS SELECT * FROM (VALUES\n  ('X', 'efectivo'), ('X', 'efectivo'), ('X', 'efectivo'),\n  ('Y', 'efectivo'), ('Y', 'efectivo'), ('Y', 'efectivo'), ('Y', 'tarjeta'),\n  ('Z', 'efectivo'), ('Z', 'efectivo')\n) AS t(cliente, metodo);",
+      "mal_sql": "SELECT cliente\nFROM pagos\nWHERE metodo = 'efectivo'\nGROUP BY cliente\nHAVING count(*) >= 3;\n-- esto encuentra a quien pagó en efectivo 3 veces o más,\n-- aunque también haya pagado con tarjeta: el WHERE ya borró esa fila",
+      "bien_sql": "SELECT cliente\nFROM pagos\nGROUP BY cliente\nHAVING count(*) >= 3\n   AND count(*) FILTER (WHERE metodo <> 'efectivo') = 0;",
+      "bien_sql_alt": null
+    }
+  }
+]
