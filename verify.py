@@ -7,6 +7,7 @@ and the fixed one give different results, in the way the page says.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -27,7 +28,9 @@ def norm(rows):
         try:
             return round(float(x), 6)
         except (TypeError, ValueError):
-            return str(x)
+            # date_trunc('day', ...) returns a DATE in older DuckDB versions and a
+            # TIMESTAMP at midnight in newer ones: same day, compared as the same.
+            return re.sub(r"^(\d{4}-\d{2}-\d{2}) 00:00:00$", r"\1", str(x))
     out = [[v(x) for x in row] for row in rows]
     out.sort(key=lambda r: json.dumps(r, default=str))
     return out
