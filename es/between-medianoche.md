@@ -50,4 +50,4 @@ Compruébalo: `python verify.py between-medianoche`
 - [¿Cuándo se solapan de verdad dos intervalos de tiempo?](solape-de-intervalos.md)
 - [¿Por qué el saldo acumulado repite el mismo número en dos filas distintas?](rango-vs-filas.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/between-medianoche
+Página con más contexto: https://casoabiertogame.com/trampas/between-medianoche

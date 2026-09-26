@@ -52,4 +52,4 @@ Compruébalo: `python verify.py solape-de-intervalos`
 - [¿Por qué BETWEEN se come el último día del rango?](between-medianoche.md)
 - [Un WHERE sobre la tabla derecha convierte tu LEFT JOIN en INNER](left-join-where.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/solape-de-intervalos
+Página con más contexto: https://casoabiertogame.com/trampas/solape-de-intervalos

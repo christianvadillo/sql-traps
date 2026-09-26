@@ -48,4 +48,4 @@ Compruébalo: `python verify.py like-mayusculas`
 - [¿Por qué NOT IN devuelve cero filas?](not-in-nulos.md)
 - [¿Por qué COUNT(columna) da menos que COUNT(*)?](count-vs-asterisco.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/like-mayusculas
+Página con más contexto: https://casoabiertogame.com/trampas/like-mayusculas

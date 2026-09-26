@@ -50,4 +50,4 @@ Check it: `python verify.py between-medianoche`
 - [When do two time intervals actually overlap?](solape-de-intervalos.md)
 - [Why does the running balance repeat the exact same number on two different rows?](rango-vs-filas.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/between-medianoche
+Page with more context: https://casoabiertogame.com/traps/between-medianoche

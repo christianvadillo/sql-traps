@@ -48,4 +48,4 @@ Compruébalo: `python verify.py qualify-vs-where`
 - [Un WHERE sobre la tabla derecha convierte tu LEFT JOIN en INNER](left-join-where.md)
 - [¿Por qué NOT IN devuelve cero filas?](not-in-nulos.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/qualify-vs-where
+Página con más contexto: https://casoabiertogame.com/trampas/qualify-vs-where

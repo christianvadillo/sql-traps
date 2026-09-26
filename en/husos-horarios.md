@@ -46,4 +46,4 @@ Check it: `python verify.py husos-horarios`
 - [Survivorship bias lives in the JOIN](supervivencia.md)
 - [Why does the running balance repeat the exact same number on two different rows?](rango-vs-filas.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/husos-horarios
+Page with more context: https://casoabiertogame.com/traps/husos-horarios

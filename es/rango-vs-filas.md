@@ -50,4 +50,4 @@ Compruébalo: `python verify.py rango-vs-filas`
 - [Zonas horarias: guarda UTC, muestra local](husos-horarios.md)
 - [¿Por qué la transferencia más grande del mes sale como $990?](numero-como-texto.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/rango-vs-filas
+Página con más contexto: https://casoabiertogame.com/trampas/rango-vs-filas

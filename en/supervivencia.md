@@ -55,4 +55,4 @@ Check it: `python verify.py supervivencia`
 - [Time zones: store UTC, show local](husos-horarios.md)
 - [Why does a self-join always bring back one extra row?](self-join-trivial.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/supervivencia
+Page with more context: https://casoabiertogame.com/traps/supervivencia

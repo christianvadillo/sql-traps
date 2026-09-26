@@ -50,4 +50,4 @@ Check it: `python verify.py rango-vs-filas`
 - [Time zones: store UTC, show local](husos-horarios.md)
 - [Why does the biggest transfer of the month show up as $990?](numero-como-texto.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/rango-vs-filas
+Page with more context: https://casoabiertogame.com/traps/rango-vs-filas

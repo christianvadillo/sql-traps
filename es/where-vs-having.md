@@ -50,4 +50,4 @@ Compruébalo: `python verify.py where-vs-having`
 - [¿Por qué COUNT(columna) da menos que COUNT(*)?](count-vs-asterisco.md)
 - [¿Por qué NOT IN devuelve cero filas?](not-in-nulos.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/where-vs-having
+Página con más contexto: https://casoabiertogame.com/trampas/where-vs-having

@@ -56,4 +56,4 @@ Check it: `python verify.py left-join-where`
 - [Why doesn't WHERE find the customer who 'always' pays cash?](where-vs-having.md)
 - [When do two time intervals actually overlap?](solape-de-intervalos.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/left-join-where
+Page with more context: https://casoabiertogame.com/traps/left-join-where

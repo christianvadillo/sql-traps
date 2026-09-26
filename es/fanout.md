@@ -53,4 +53,4 @@ Compruébalo: `python verify.py fanout`
 - [¿Por qué un self-join siempre trae una fila de más?](self-join-trivial.md)
 - [Una tasa sin denominador no significa nada](tasa-sin-denominador.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/fanout
+Página con más contexto: https://casoabiertogame.com/trampas/fanout

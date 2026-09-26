@@ -52,4 +52,4 @@ Check it: `python verify.py self-join-trivial`
 - [The join that multiplies rows](fanout.md)
 - [Survivorship bias lives in the JOIN](supervivencia.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/self-join-trivial
+Page with more context: https://casoabiertogame.com/traps/self-join-trivial

@@ -56,4 +56,4 @@ Compruébalo: `python verify.py left-join-where`
 - [¿Por qué el WHERE no encuentra a quien 'siempre' paga en efectivo?](where-vs-having.md)
 - [¿Cuándo se solapan de verdad dos intervalos de tiempo?](solape-de-intervalos.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/left-join-where
+Página con más contexto: https://casoabiertogame.com/trampas/left-join-where

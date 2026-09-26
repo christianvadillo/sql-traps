@@ -46,4 +46,4 @@ Compruébalo: `python verify.py husos-horarios`
 - [El sesgo de supervivencia está en el JOIN](supervivencia.md)
 - [¿Por qué el saldo acumulado repite el mismo número en dos filas distintas?](rango-vs-filas.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/husos-horarios
+Página con más contexto: https://casoabiertogame.com/trampas/husos-horarios

@@ -54,4 +54,4 @@ Check it: `python verify.py tasa-sin-denominador`
 - [The join that multiplies rows](fanout.md)
 - [When do two time intervals actually overlap?](solape-de-intervalos.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/tasa-sin-denominador
+Page with more context: https://casoabiertogame.com/traps/tasa-sin-denominador

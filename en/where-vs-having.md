@@ -50,4 +50,4 @@ Check it: `python verify.py where-vs-having`
 - [Why does COUNT(column) give a smaller number than COUNT(*)?](count-vs-asterisco.md)
 - [Why does NOT IN return zero rows?](not-in-nulos.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/where-vs-having
+Page with more context: https://casoabiertogame.com/traps/where-vs-having

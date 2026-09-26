@@ -53,4 +53,4 @@ Check it: `python verify.py fanout`
 - [Why does a self-join always bring back one extra row?](self-join-trivial.md)
 - [A rate needs a denominator](tasa-sin-denominador.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/fanout
+Page with more context: https://casoabiertogame.com/traps/fanout

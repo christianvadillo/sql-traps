@@ -52,4 +52,4 @@ Compruébalo: `python verify.py self-join-trivial`
 - [El join que multiplica filas](fanout.md)
 - [El sesgo de supervivencia está en el JOIN](supervivencia.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/self-join-trivial
+Página con más contexto: https://casoabiertogame.com/trampas/self-join-trivial

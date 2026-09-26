@@ -36,7 +36,7 @@ The SQL is DuckDB. Almost all of it is plain standard SQL; where an engine behav
 
 ## Where these come from
 
-They are the traps hidden in the case files of [Caso Abierto](https://caso-abierto.christianvadillo.workers.dev/?via=github-traps), a detective game where you solve each case by writing SQL and have to hand in the query that proves your accusation. The first case plays free in the browser.
+They are the traps hidden in the case files of [Caso Abierto](https://casoabiertogame.com/?via=github-traps), a detective game where you solve each case by writing SQL and have to hand in the query that proves your accusation. The first case plays free in the browser.
 
 ---
 
@@ -64,7 +64,7 @@ Cada una trae la consulta con la trampa, la corrección, por qué pasa y un data
 | [¿Por qué WHERE no puede filtrar el resultado de una window function?](es/qualify-vs-where.md) |
 | [¿Por qué el WHERE no encuentra a quien 'siempre' paga en efectivo?](es/where-vs-having.md) |
 
-Salen de los casos de [Caso Abierto](https://caso-abierto.christianvadillo.workers.dev/?via=github-trampas), un juego de detectives que se resuelve escribiendo SQL. El primer caso se juega gratis en el navegador.
+Salen de los casos de [Caso Abierto](https://casoabiertogame.com/?via=github-trampas), un juego de detectives que se resuelve escribiendo SQL. El primer caso se juega gratis en el navegador.
 
 ## License
 

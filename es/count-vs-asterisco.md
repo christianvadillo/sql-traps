@@ -44,4 +44,4 @@ Compruébalo: `python verify.py count-vs-asterisco`
 - [¿Por qué el WHERE no encuentra a quien 'siempre' paga en efectivo?](where-vs-having.md)
 - [Un WHERE sobre la tabla derecha convierte tu LEFT JOIN en INNER](left-join-where.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/count-vs-asterisco
+Página con más contexto: https://casoabiertogame.com/trampas/count-vs-asterisco

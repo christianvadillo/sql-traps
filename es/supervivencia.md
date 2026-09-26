@@ -55,4 +55,4 @@ Compruébalo: `python verify.py supervivencia`
 - [Zonas horarias: guarda UTC, muestra local](husos-horarios.md)
 - [¿Por qué un self-join siempre trae una fila de más?](self-join-trivial.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/supervivencia
+Página con más contexto: https://casoabiertogame.com/trampas/supervivencia

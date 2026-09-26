@@ -61,4 +61,4 @@ Check it: `python verify.py not-in-nulos`
 - [Why does COUNT(column) give a smaller number than COUNT(*)?](count-vs-asterisco.md)
 - [Why doesn't WHERE find the customer who 'always' pays cash?](where-vs-having.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/not-in-nulos
+Page with more context: https://casoabiertogame.com/traps/not-in-nulos

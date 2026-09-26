@@ -61,4 +61,4 @@ Compruébalo: `python verify.py not-in-nulos`
 - [¿Por qué COUNT(columna) da menos que COUNT(*)?](count-vs-asterisco.md)
 - [¿Por qué el WHERE no encuentra a quien 'siempre' paga en efectivo?](where-vs-having.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/not-in-nulos
+Página con más contexto: https://casoabiertogame.com/trampas/not-in-nulos

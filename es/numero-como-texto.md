@@ -49,4 +49,4 @@ Compruébalo: `python verify.py numero-como-texto`
 - [¿Por qué el WHERE no encuentra a quien 'siempre' paga en efectivo?](where-vs-having.md)
 - [¿Por qué el saldo acumulado repite el mismo número en dos filas distintas?](rango-vs-filas.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/numero-como-texto
+Página con más contexto: https://casoabiertogame.com/trampas/numero-como-texto

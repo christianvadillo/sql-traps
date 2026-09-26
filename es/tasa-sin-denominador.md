@@ -54,4 +54,4 @@ Compruébalo: `python verify.py tasa-sin-denominador`
 - [El join que multiplica filas](fanout.md)
 - [¿Cuándo se solapan de verdad dos intervalos de tiempo?](solape-de-intervalos.md)
 
-Página con más contexto: https://caso-abierto.christianvadillo.workers.dev/trampas/tasa-sin-denominador
+Página con más contexto: https://casoabiertogame.com/trampas/tasa-sin-denominador

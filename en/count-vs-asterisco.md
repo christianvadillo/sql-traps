@@ -44,4 +44,4 @@ Check it: `python verify.py count-vs-asterisco`
 - [Why doesn't WHERE find the customer who 'always' pays cash?](where-vs-having.md)
 - [A WHERE on the right-hand table turns your LEFT JOIN back into an INNER JOIN](left-join-where.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/count-vs-asterisco
+Page with more context: https://casoabiertogame.com/traps/count-vs-asterisco

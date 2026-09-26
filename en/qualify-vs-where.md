@@ -48,4 +48,4 @@ Check it: `python verify.py qualify-vs-where`
 - [A WHERE on the right-hand table turns your LEFT JOIN back into an INNER JOIN](left-join-where.md)
 - [Why does NOT IN return zero rows?](not-in-nulos.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/qualify-vs-where
+Page with more context: https://casoabiertogame.com/traps/qualify-vs-where

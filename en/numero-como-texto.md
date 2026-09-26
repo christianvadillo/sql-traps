@@ -49,4 +49,4 @@ Check it: `python verify.py numero-como-texto`
 - [Why doesn't WHERE find the customer who 'always' pays cash?](where-vs-having.md)
 - [Why does the running balance repeat the exact same number on two different rows?](rango-vs-filas.md)
 
-Page with more context: https://caso-abierto.christianvadillo.workers.dev/traps/numero-como-texto
+Page with more context: https://casoabiertogame.com/traps/numero-como-texto
